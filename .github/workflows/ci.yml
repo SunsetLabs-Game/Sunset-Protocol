@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel any in-progress run for the same branch/PR to avoid wasting CI minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  BUN_VERSION: "1"
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+            frontend/node_modules
+          key: bun-frontend-${{ runner.os }}-${{ hashFiles('bun.lock', 'frontend/package.json') }}
+          restore-keys: |
+            bun-frontend-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: cd frontend && bun run typecheck
+
+      - name: Build
+        run: cd frontend && bun run build
+        env:
+          VITE_RPC_URL: ${{ secrets.VITE_RPC_URL }}
+          VITE_ASP_URL: ${{ secrets.VITE_ASP_URL }}
+          VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
+          VITE_RELAYER_ADDRESS: ${{ secrets.VITE_RELAYER_ADDRESS }}
+          VITE_POOL_ADDRESS: ${{ secrets.VITE_POOL_ADDRESS }}
+          VITE_COORDINATOR_ADDRESS: ${{ secrets.VITE_COORDINATOR_ADDRESS }}
+          VITE_CAVOS_APP_ID: ${{ secrets.VITE_CAVOS_APP_ID }}
+          VITE_NETWORK: ${{ secrets.VITE_NETWORK }}
+
+  sdk:
+    name: SDK
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            sdk/node_modules
+          key: bun-sdk-${{ runner.os }}-${{ hashFiles('sdk/bun.lock', 'sdk/package.json') }}
+          restore-keys: |
+            bun-sdk-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: cd sdk && bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: cd sdk && bun run lint
+
+      - name: Test
+        run: cd sdk && bun test
+
+  asp:
+    name: ASP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: asp
+
+      - name: Cache bun dependencies (circuits)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            circuits/node_modules
+          key: bun-circuits-${{ runner.os }}-${{ hashFiles('circuits/bun.lock', 'circuits/package.json') }}
+          restore-keys: |
+            bun-circuits-${{ runner.os }}-
+
+      - name: Install circuit dependencies
+        run: cd circuits && bun install --frozen-lockfile
+
+      - name: Lint (Clippy)
+        run: cd asp && cargo clippy -- -D warnings
+
+      - name: Test
+        run: cd asp && cargo test
+
+  solidity:
+    name: Solidity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            contracts/solidity/node_modules
+          key: bun-solidity-${{ runner.os }}-${{ hashFiles('contracts/solidity/bun.lock', 'contracts/solidity/package.json') }}
+          restore-keys: |
+            bun-solidity-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: cd contracts/solidity && bun install --frozen-lockfile
+
+      - name: Compile contracts
+        run: cd contracts/solidity && bun run compile
+
+      - name: Test contracts
+        run: cd contracts/solidity && bun run test
+
+  audit:
+    name: Active audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check active references
+        run: bun run audit:active
