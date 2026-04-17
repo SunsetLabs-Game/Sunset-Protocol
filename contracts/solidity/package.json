@@ -1,0 +1,21 @@
+{
+  "name": "@sunset/contracts",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.cjs",
+    "deploy:conflux": "hardhat run scripts/deploy.cjs --network confluxESpace",
+    "deploy:conflux:testnet": "hardhat run scripts/deploy.cjs --network confluxESpaceTestnet",
+    "smoke": "hardhat run scripts/smoke.cjs",
+    "smoke:conflux": "hardhat run scripts/smoke.cjs --network confluxESpace",
+    "smoke:conflux:testnet": "hardhat run scripts/smoke.cjs --network confluxESpaceTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@openzeppelin/contracts": "^5.3.0",
+    "chai": "^6.2.2",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.3"
+  }
+}
