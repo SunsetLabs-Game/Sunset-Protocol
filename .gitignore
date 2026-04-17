@@ -1,0 +1,44 @@
+# Build artifacts
+target/
+dist/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files — catch all .env variants
+.env*
+!.env.example
+!frontend/.env.example
+!asp/.env.example
+
+# Dynamic deployment manifests
+contracts/solidity/deployments/contracts.json
+
+account.json
+keystore.json
+*.keystore
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Solidity / Hardhat artifacts
+contracts/solidity/artifacts/
+contracts/solidity/cache/
+contracts/solidity/typechain-types/
+
+# Node (JS tooling)
+node_modules/
+
+# Test artifacts
+*.log
