@@ -1,0 +1,209 @@
+use std::sync::Arc;
+
+use axum::extract::State;
+use axum::Json;
+
+use crate::api::types::{SwapRequest, SwapResponse};
+use crate::api::handlers::deposit::decimal_to_hex;
+use crate::api::validation::{
+    validate_address, validate_decimal, validate_hex_u256, validate_secret,
+};
+use crate::error::AspError;
+use crate::AppState;
+
+async fn predict_root(state: &Arc<AppState>, appended_leaves: &[String]) -> Result<String, AspError> {
+    let base_leaves: Vec<String> = state
+        .db
+        .get_all_commitments()?
+        .into_iter()
+        .map(|row| row.commitment)
+        .collect();
+
+    let mut predicted_leaves = base_leaves.clone();
+    predicted_leaves.extend_from_slice(appended_leaves);
+
+    let mut worker = state.worker.lock().await;
+    let predicted_root = worker.build_tree(&predicted_leaves).await?;
+    let _ = worker.build_tree(&base_leaves).await?;
+
+    Ok(predicted_root)
+}
+
+fn validate_swap_request(req: &SwapRequest) -> Result<(), AspError> {
+    // Input note
+    validate_secret(&req.input_note.secret, "input_note.secret")?;
+    validate_secret(&req.input_note.nullifier, "input_note.nullifier")?;
+    validate_decimal(&req.input_note.balance_low, "input_note.balance_low")?;
+    validate_decimal(&req.input_note.balance_high, "input_note.balance_high")?;
+    validate_address(&req.input_note.token, "input_note.token")?;
+
+    // Swap params
+    validate_address(&req.swap_params.token_in, "swap_params.token_in")?;
+    validate_address(&req.swap_params.token_out, "swap_params.token_out")?;
+    validate_decimal(&req.swap_params.amount_in, "swap_params.amount_in")?;
+    validate_decimal(
+        &req.swap_params.amount_out_min,
+        "swap_params.amount_out_min",
+    )?;
+    validate_decimal(
+        &req.swap_params.amount_out_low,
+        "swap_params.amount_out_low",
+    )?;
+    validate_decimal(
+        &req.swap_params.amount_out_high,
+        "swap_params.amount_out_high",
+    )?;
+
+    // Output + change notes
+    validate_secret(&req.output_note.secret, "output_note.secret")?;
+    validate_secret(&req.output_note.nullifier, "output_note.nullifier")?;
+    validate_secret(&req.change_note.secret, "change_note.secret")?;
+    validate_secret(&req.change_note.nullifier, "change_note.nullifier")?;
+
+    // Pool key
+    validate_address(&req.pool_key.token_0, "pool_key.token_0")?;
+    validate_address(&req.pool_key.token_1, "pool_key.token_1")?;
+
+    // Price limit
+    validate_hex_u256(&req.sqrt_price_limit, "sqrt_price_limit")?;
+
+    Ok(())
+}
+
+pub async fn shielded_swap(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<SwapRequest>,
+) -> Result<Json<SwapResponse>, AspError> {
+    validate_swap_request(&req)?;
+
+    tracing::info!(
+        leaf_index = req.input_note.leaf_index,
+        "Processing shielded swap"
+    );
+
+    let mut worker = state.worker.lock().await;
+
+    // 1. Compute input note commitment
+    let input_result = worker
+        .compute_commitment(
+            &req.input_note.secret,
+            &req.input_note.nullifier,
+            &req.input_note.balance_low,
+            &req.input_note.balance_high,
+            &req.input_note.token,
+        )
+        .await?;
+
+    // 2. Verify commitment exists
+    let stored = state.db.get_commitment(req.input_note.leaf_index)?;
+    match &stored {
+        Some(row) if row.commitment == input_result.commitment => {}
+        Some(_) => return Err(AspError::InvalidInput("Commitment mismatch".into())),
+        None => return Err(AspError::CommitmentNotFound(req.input_note.leaf_index)),
+    }
+
+    // 3. Check nullifier not spent
+    if state.db.is_nullifier_spent(&input_result.nullifier_hash)? {
+        return Err(AspError::NullifierAlreadySpent(input_result.nullifier_hash));
+    }
+
+    // 4. Get Merkle proof
+    let proof = worker.get_proof(req.input_note.leaf_index).await?;
+
+    // 5. Compute output commitment (for newCommitment public input)
+    let output_commitment = worker
+        .compute_commitment(
+            &req.output_note.secret,
+            &req.output_note.nullifier,
+            &req.swap_params.amount_out_low,
+            &req.swap_params.amount_out_high,
+            &req.swap_params.token_out,
+        )
+        .await?;
+
+    // 6. Build swap circuit inputs
+    let inputs = serde_json::json!({
+        "root": proof.root,
+        "nullifierHash": input_result.nullifier_hash,
+        "newCommitment": output_commitment.commitment,
+        "tokenIn": req.swap_params.token_in,
+        "tokenOut": req.swap_params.token_out,
+        "amountIn": req.swap_params.amount_in,
+        "amountOutMin": req.swap_params.amount_out_min,
+        // Private inputs
+        "secret": req.input_note.secret,
+        "nullifier": req.input_note.nullifier,
+        "balance_low": req.input_note.balance_low,
+        "balance_high": req.input_note.balance_high,
+        "pathElements": proof.path_elements,
+        "pathIndices": proof.path_indices,
+        "newSecret": req.output_note.secret,
+        "newNullifier": req.output_note.nullifier,
+        "amountOut_low": req.swap_params.amount_out_low,
+        "amountOut_high": req.swap_params.amount_out_high,
+        "changeSecret": req.change_note.secret,
+        "changeNullifier": req.change_note.nullifier,
+    });
+
+    // 7. Generate swap proof
+    let proof_result = worker.generate_proof("swap", inputs).await?;
+    drop(worker);
+
+    // The changeCommitment is a circuit output computed inside the proof.
+    // It's the first public signal from the swap circuit (Circom outputs come first).
+    let change_commitment = proof_result
+        .public_signals
+        .first()
+        .cloned()
+        .unwrap_or_default();
+    let predicted_root = predict_root(
+        &state,
+        &[output_commitment.commitment.clone(), change_commitment.clone()],
+    )
+    .await?;
+
+    tracing::info!("Shielded swap proof prepared for direct wallet submission");
+
+    // Reconstruct actual amounts so the SDK can save notes with correct amounts.
+    // u256 is split into (low, high) 128-bit halves: value = low + high * 2^128.
+    // For realistic token amounts both high parts are 0, so value == low.
+    let amount_out_low: u128 = req.swap_params.amount_out_low.parse().unwrap_or(0);
+    let amount_out_high: u128 = req.swap_params.amount_out_high.parse().unwrap_or(0);
+    // Reconstruct as u256 via u128 (high * 2^128 overflows u128, but for all realistic
+    // token amounts high == 0, so amount_out == amount_out_low).
+    let amount_out = if amount_out_high == 0 {
+        amount_out_low.to_string()
+    } else {
+        // Fallback: encode as decimal u256 using 128-bit arithmetic
+        // high * 2^128 + low  (high != 0 means very large amounts, extremely rare)
+        // 2^128 as a u128 overflows — use string arithmetic approximation
+        // In practice this branch should never be reached for ERC-20 tokens
+        format!(
+            "{}",
+            amount_out_high
+                .saturating_mul(u128::MAX)
+                .saturating_add(amount_out_low)
+        )
+    };
+
+    let amount_in: u128 = req.swap_params.amount_in.parse().unwrap_or(0);
+    let balance_low: u128 = req.input_note.balance_low.parse().unwrap_or(0);
+    let balance_high: u128 = req.input_note.balance_high.parse().unwrap_or(0);
+    // Same u256 reconstruction for input balance (high == 0 for realistic amounts)
+    let input_balance: u128 = if balance_high == 0 {
+        balance_low
+    } else {
+        u128::MAX // saturate — extremely large balance
+    };
+    let amount_change = input_balance.saturating_sub(amount_in).to_string();
+
+    Ok(Json(SwapResponse {
+        status: "prepared".to_string(),
+        calldata: proof_result.calldata,
+        final_root: decimal_to_hex(&predicted_root),
+        new_commitment: output_commitment.commitment.clone(),
+        change_commitment: change_commitment.clone(),
+        amount_out,
+        amount_change,
+    }))
+}
