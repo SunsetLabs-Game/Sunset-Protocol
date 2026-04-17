@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+/*
+ * Obsidian Core — Sunset Visual DNA
+ * Design tokens encoded as Tailwind v4 @theme.
+ *
+ * Color ratio: gold-led surfaces with black used for contrast and detail.
+ * Gold = muted brushed metal, NEVER bright #FFD700.
+ * Red = signal only (errors/warnings), NEVER decorative.
+ */
+
+@theme {
+  /* Gold-led depth layers */
+  --color-canvas: #b8975a;
+  --color-surface: #c9a94e;
+  --color-surface-elevated: #d6c08a;
+  --color-border: #3a3122;
+  --color-border-subtle: #5b4a2f;
+
+  /* Gold family */
+  --color-gold: #C9A94E;
+  --color-gold-muted: #B8975A;
+  --color-gold-dim: #A7864D;
+
+  /* Red — signal only */
+  --color-signal-error: #EF4444;
+  --color-signal-warning: #F59E0B;
+  --color-signal-success: #22C55E;
+
+  /* Typography hierarchy */
+  --color-text-display: #111111;
+  --color-text-heading: #1f1f1f;
+  --color-text-body: #3b3b3b;
+  --color-text-caption: #6b645a;
+  --color-text-disabled: #938a7a;
+
+  /* Font */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Spacing scale overrides for generous breathing room */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+
+  /* Animation */
+  --animate-progress-indeterminate: progress-indeterminate 1.5s ease-in-out infinite;
+  --animate-border-spin: border-spin 2.5s linear infinite;
+}
+
+/* Base styles */
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top, rgba(246, 232, 196, 0.45), transparent 35%),
+      linear-gradient(180deg, #d6c08a 0%, #c9a94e 40%, #b8975a 100%);
+    color: var(--color-text-body);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-disabled);
+  }
+
+  ::selection {
+    background: rgba(17, 17, 17, 0.14);
+    color: var(--color-text-display);
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-in {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fade-in;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation-name: slide-in-from-bottom;
+  }
+
+  .slide-in-from-right {
+    animation-name: slide-in-from-right;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(200%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes border-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
