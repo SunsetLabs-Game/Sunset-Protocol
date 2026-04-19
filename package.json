@@ -2,7 +2,10 @@
   "name": "sunset",
   "version": "0.1.0",
   "description": "Shielded CLMM for Bitcoin wrappers and stablecoins on Conflux",
-  "workspaces": ["frontend", "sdk"],
+  "workspaces": [
+    "frontend",
+    "sdk"
+  ],
   "scripts": {
     "dev": "bun run dev:frontend",
     "dev:frontend": "bun run env:sync && bun run check:conflux && cd frontend && bun run dev",
@@ -35,8 +38,7 @@
     "clean:sdk": "rm -rf sdk/dist",
     "clean:asp": "rm -rf asp/target",
     "clean:contracts": "rm -rf contracts/solidity/artifacts contracts/solidity/cache",
-    "clean:circuits": "rm -rf circuits/build",
-    "audit:active": "bash scripts/audit-active.sh"
+    "clean:circuits": "rm -rf circuits/build"
   },
   "keywords": [
     "conflux",

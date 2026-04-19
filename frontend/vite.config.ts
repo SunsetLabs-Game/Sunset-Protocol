@@ -12,6 +12,7 @@ export default defineConfig({
       path: nodePath.resolve(__dirname, "./src/stubs/node-builtins.ts"),
       url: nodePath.resolve(__dirname, "./src/stubs/node-builtins.ts"),
       "fs/promises": nodePath.resolve(__dirname, "./src/stubs/node-builtins.ts"),
+      assert: nodePath.resolve(__dirname, "./src/stubs/assert.ts"),
       // Polyfill Node.js builtins used by SDK dependencies
       buffer: "buffer",
       events: "events",
