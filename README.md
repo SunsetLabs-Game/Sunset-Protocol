@@ -65,7 +65,6 @@ Sunset is not a generic DEX. It is a specialized shielded liquidity venue for:
 - `sdk/`: client logic, storage, proving glue, and protocol helpers
 - `asp/`: off-chain proving and relay service
 - `contracts/solidity/`: Conflux-oriented Solidity contracts for factory, range pools, and proof coordination
-- `docs/conflux-migration.md`: migration and verification document
 
 ## Working Direction
 
