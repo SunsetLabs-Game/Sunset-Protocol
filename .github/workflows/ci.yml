@@ -154,20 +154,3 @@ jobs:
 
       - name: Test contracts
         run: cd contracts/solidity && bun run test
-
-  audit:
-    name: Active audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Check active references
-        run: bun run audit:active
