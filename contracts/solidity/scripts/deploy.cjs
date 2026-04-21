@@ -90,12 +90,25 @@ async function deployVerifiers(useMocks) {
     };
   }
 
+  // Deploy real Groth16 verifiers
+  console.log("Deploying real Groth16 verifiers...");
+  const membershipGroth16 = await deployContract("MembershipGroth16Verifier");
+  const swapGroth16 = await deployContract("SwapGroth16Verifier");
+  const mintGroth16 = await deployContract("MintGroth16Verifier");
+  const burnGroth16 = await deployContract("BurnGroth16Verifier");
+
+  console.log("Deploying Verifier Adapters...");
+  const membershipAdapter = await deployContract("MembershipVerifierAdapter", [await membershipGroth16.getAddress()]);
+  const swapAdapter = await deployContract("SwapVerifierAdapter", [await swapGroth16.getAddress()]);
+  const mintAdapter = await deployContract("MintVerifierAdapter", [await mintGroth16.getAddress()]);
+  const burnAdapter = await deployContract("BurnVerifierAdapter", [await burnGroth16.getAddress()]);
+
   return {
-    membership: requireAddress("VERIFIER_MEMBERSHIP_ADDRESS"),
-    swap: requireAddress("VERIFIER_SWAP_ADDRESS"),
-    mint: requireAddress("VERIFIER_MINT_ADDRESS"),
-    burn: requireAddress("VERIFIER_BURN_ADDRESS"),
-    mode: "external",
+    membership: await membershipAdapter.getAddress(),
+    swap: await swapAdapter.getAddress(),
+    mint: await mintAdapter.getAddress(),
+    burn: await burnAdapter.getAddress(),
+    mode: "real",
   };
 }
 

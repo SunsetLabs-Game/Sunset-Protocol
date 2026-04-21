@@ -68,13 +68,18 @@ pub fn hex_to_decimal(hex: &str) -> Result<String, AspError> {
     Ok(big.to_str_radix(10))
 }
 
-/// Convert a decimal string to hex (0x...) for API responses.
+/// Convert a decimal string to a 0x-prefixed, 32-byte zero-padded hex string.
+/// This ensures the value is a valid `bytes32` as expected by ethers.js v6.
 pub fn decimal_to_hex(dec: &str) -> String {
     use num_bigint::BigUint;
     use num_traits::Num;
 
     match BigUint::from_str_radix(dec, 10) {
-        Ok(big) => format!("0x{}", big.to_str_radix(16)),
+        Ok(big) => {
+            let hex = big.to_str_radix(16);
+            // Pad to 64 hex chars (32 bytes) for bytes32 compatibility
+            format!("0x{:0>64}", hex)
+        }
         Err(_) => dec.to_string(),
     }
 }

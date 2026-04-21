@@ -138,36 +138,21 @@ async function handleCommand(msg) {
         }
 
         // 2. Export proof artifacts (needed by garaga)
-        exportProofArtifacts(circuit, proof, publicSignals);
+        // Flatten proof arrays for EVM
+        const flatProof = [
+          proof.pi_a[0], proof.pi_a[1],
+          proof.pi_b[0][1], proof.pi_b[0][0],
+          proof.pi_b[1][1], proof.pi_b[1][0],
+          proof.pi_c[0], proof.pi_c[1],
+        ];
+        
+        // Evm requires hex strings
+        const toHex32 = (n) => {
+          let h = BigInt(n).toString(16);
+          return "0x" + h.padStart(64, "0");
+        };
 
-        // 3. Generate Garaga calldata
-        if (!isGaragaAvailable()) {
-          respond({ id, ok: false, error: "garaga CLI not available" });
-          return;
-        }
-
-        const calldataGenerated = generateCalldata(circuit);
-        if (!calldataGenerated) {
-          respond({
-            id,
-            ok: false,
-            error: `garaga calldata generation failed for ${circuit}`,
-          });
-          return;
-        }
-
-        // 4. Read calldata from file
-        const calldataPath = path.join(
-          GARAGA_DIR,
-          `${circuit}_verifier`,
-          "tests",
-          "proof_calldata.txt",
-        );
-        const calldataRaw = fs.readFileSync(calldataPath, "utf8").trim();
-        const calldata = calldataRaw
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean);
+        const calldata = [...flatProof, ...publicSignals].map(toHex32);
 
         respond({
           id,
