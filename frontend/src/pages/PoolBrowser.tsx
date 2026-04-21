@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { LiquidityDepthChart } from "@/components/features/charts/LiquidityDepthChart";
 import { usePoolState } from "@/hooks/usePoolState";
-import { TESTNET_TOKENS } from "@/config/tokens";
+import { TOKEN_0, TOKEN_1 } from "@/config/tokens";
 import { FEE_TIERS } from "@sunset/sdk";
 import type { PoolKey } from "@sunset/sdk";
 import { motion } from "motion/react";
@@ -35,9 +35,18 @@ const itemVariants = {
 };
 
 export function PoolBrowser() {
-  // Fixed prototype pool with a Sunset test token and ETH
-  const token0 = TESTNET_TOKENS.find(t => t.symbol === "SUN")!;
-  const token1 = TESTNET_TOKENS.find(t => t.symbol === "ETH")!;
+  const token0 = TOKEN_0;
+  const token1 = TOKEN_1;
+
+  if (!token0 || !token1) {
+    return (
+      <PageContainer size="wide">
+        <div className="py-24 text-center">
+          <p className="text-text-caption">Token pair not configured. Check VITE_TOKEN_0/1 env vars.</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
   const poolKey: PoolKey = {
     token0: token0.address,

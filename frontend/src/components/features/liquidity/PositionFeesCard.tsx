@@ -1,6 +1,6 @@
 import { usePositionFees } from "@/hooks/usePositionFees";
 import { formatTokenAmount } from "@/lib/format";
-import { TESTNET_TOKENS } from "@/config/tokens";
+import { TOKEN_0, TOKEN_1 } from "@/config/tokens";
 import type { PositionNote } from "@sunset/sdk";
 
 interface PositionFeesCardProps {
@@ -14,9 +14,9 @@ interface PositionFeesCardProps {
 export function PositionFeesCard({ position }: PositionFeesCardProps) {
   const { data: fees, isLoading, isError } = usePositionFees(position);
 
-  // Get token info for the current prototype pool
-  const token0 = TESTNET_TOKENS.find((t) => t.symbol === "ETH");
-  const token1 = TESTNET_TOKENS.find((t) => t.symbol === "SUN");
+  // Get token info for the current deployed pool
+  const token0 = TOKEN_0;
+  const token1 = TOKEN_1;
 
   if (!token0 || !token1) {
     return null;

@@ -179,11 +179,11 @@ export function SwapCard() {
         );
       }
 
-      // sqrtPriceLimit: use min/max tick sqrt price to allow full range
+      // sqrtPriceLimit: use Uniswap V3 min/max sqrt prices (must fit uint160)
       // zeroForOne pushes price down → use MIN_SQRT_PRICE + 1
       // oneForZero pushes price up → use MAX_SQRT_PRICE - 1
-      const MIN_SQRT_PRICE = 18446748437148339061n; // tick MIN
-      const MAX_SQRT_PRICE = 6277100124014414463012959019843661850313428390744n; // tick MAX
+      const MIN_SQRT_PRICE = 4295128740n;                              // TickMath.MIN_SQRT_RATIO + 1
+      const MAX_SQRT_PRICE = 1461446703485210103287273052203988822378723970341n; // TickMath.MAX_SQRT_RATIO - 1
       const priceLimit = zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE;
 
       swap.mutate(

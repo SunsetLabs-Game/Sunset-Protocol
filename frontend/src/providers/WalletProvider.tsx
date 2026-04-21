@@ -40,12 +40,16 @@ declare global {
 const WalletContext = createContext<WalletContextValue | null>(null);
 
 function getInjectedProvider(): InjectedWalletProvider | undefined {
-  return window.ethereum ?? window.conflux;
+  // Prefer Fluent's window.conflux; fall back to window.ethereum (MetaMask etc.)
+  return window.conflux ?? window.ethereum;
 }
 
 function getWalletLabel(provider: InjectedWalletProvider | undefined): string | null {
   if (!provider) return null;
-  if (window.conflux === provider) return "Conflux Wallet";
+  if (window.conflux && provider === window.conflux) return "Fluent Wallet";
+  // Try to detect MetaMask-like wallets
+  const eth = window.ethereum as (InjectedWalletProvider & { isMetaMask?: boolean }) | undefined;
+  if (eth && provider === eth && eth.isMetaMask) return "MetaMask";
   return "Injected Wallet";
 }
 

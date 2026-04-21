@@ -42,6 +42,10 @@ const configuredTokens = [
 export const CONFIGURED_TOKENS = configuredTokens;
 export const TESTNET_TOKENS = configuredTokens;
 
+/** Canonical token pair from env — token0 is always CONFIGURED_TOKENS[0]. */
+export const TOKEN_0: Token | undefined = configuredTokens[0];
+export const TOKEN_1: Token | undefined = configuredTokens[1];
+
 export function getConfiguredTokenPair(): [Token, Token] | null {
   if (CONFIGURED_TOKENS.length < 2) {
     return null;
@@ -59,3 +63,4 @@ export function getToken(address: string): Token | undefined {
 export function getTokenSymbol(address: string): string {
   return getToken(address)?.symbol ?? `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
+

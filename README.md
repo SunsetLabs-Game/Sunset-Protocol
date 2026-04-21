@@ -114,6 +114,31 @@ The privacy stack uses commitments, nullifiers, Merkle proofs, and circuit artif
 Sunset includes an AI-ready coordination layer through its backend and SDK architecture, enabling agent-facing automation for privacy-preserving execution.
 
 The current AI positioning is:
+- automated strategy assistance for LP range management,
+- private execution planning for shielded swaps,
+- and agent-triggered transaction orchestration against Conflux-native liquidity.
+
+This makes the project a credible candidate for the **AI + Conflux** bonus track when paired with the demo and submission narrative in [docs/hackathon/ai-positioning.md](docs/hackathon/ai-positioning.md).
+
+## Testnet Deployment — Conflux eSpace Testnet (Chain ID 71)
+
+> Deployed on **2026-04-21** · Explorer: [evmtestnet.confluxscan.org](https://evmtestnet.confluxscan.org)
+
+| Contract | Address |
+|---|---|
+| **SunsetVerifierCoordinator** | [`0x2fAd2026945898B34687005Fd0ca2a4eD5b0f571`](https://evmtestnet.confluxscan.org/address/0x2fAd2026945898B34687005Fd0ca2a4eD5b0f571) |
+| **SunsetPoolFactory** | [`0xC17bdE7Bd63c0930d623cF1c0E1f95a3E1C5710B`](https://evmtestnet.confluxscan.org/address/0xC17bdE7Bd63c0930d623cF1c0E1f95a3E1C5710B) |
+| **SunsetRangePool** (WBTC/USDT0) | [`0xB6a46D0C4998EEd074D0B07d11c1483817FfBB47`](https://evmtestnet.confluxscan.org/address/0xB6a46D0C4998EEd074D0B07d11c1483817FfBB47) |
+| MockERC20 — WBTC | [`0xd287c753cb51d169920706a79285F40b5B0D0Aec`](https://evmtestnet.confluxscan.org/address/0xd287c753cb51d169920706a79285F40b5B0D0Aec) |
+| MockERC20 — USDT0 | [`0xEed6b560f75b2cCAb63450e59Ac2DC1B8b10A7af`](https://evmtestnet.confluxscan.org/address/0xEed6b560f75b2cCAb63450e59Ac2DC1B8b10A7af) |
+
+**Deployer:** [`0xdACf30077B30F379607b5b2E53C64eDEC1223Bd1`](https://evmtestnet.confluxscan.org/address/0xdACf30077B30F379607b5b2E53C64eDEC1223Bd1)
+
+**Protocol Fee:** 1000 bps (10%)
+
+> Full deployment manifest: [`contracts/solidity/deployments/contracts.json`](contracts/solidity/deployments/contracts.json)
+
+## Working Direction
 
 - automated strategy assistance for LP range management,
 - private execution planning for shielded swaps,

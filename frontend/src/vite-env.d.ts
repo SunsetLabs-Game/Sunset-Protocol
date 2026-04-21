@@ -14,6 +14,14 @@ interface ImportMetaEnv {
   readonly VITE_POOL_ADDRESS: string;
   readonly VITE_COORDINATOR_ADDRESS: string;
   readonly VITE_RELAYER_ADDRESS: string;
+  readonly VITE_TOKEN_0_ADDRESS: string;
+  readonly VITE_TOKEN_0_SYMBOL: string;
+  readonly VITE_TOKEN_0_NAME: string;
+  readonly VITE_TOKEN_0_DECIMALS: string;
+  readonly VITE_TOKEN_1_ADDRESS: string;
+  readonly VITE_TOKEN_1_SYMBOL: string;
+  readonly VITE_TOKEN_1_NAME: string;
+  readonly VITE_TOKEN_1_DECIMALS: string;
 }
 
 interface ImportMeta {

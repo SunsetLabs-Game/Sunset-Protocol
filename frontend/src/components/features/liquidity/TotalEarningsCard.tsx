@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { useAllPositionsFees } from "@/hooks/useAllPositionsFees";
 import { useSdkStore } from "@/stores/sdkStore";
 import { formatTokenAmount } from "@/lib/format";
-import { TESTNET_TOKENS } from "@/config/tokens";
+import { TOKEN_0, TOKEN_1 } from "@/config/tokens";
 
 /**
  * Displays total uncollected fees across all shielded positions.
@@ -14,9 +14,9 @@ export function TotalEarningsCard() {
   const positions = useSdkStore((s) => s.unspentPositions);
   const { data: fees, isLoading, isError } = useAllPositionsFees();
 
-  // Get token info for the current prototype pool
-  const token0 = TESTNET_TOKENS.find((t) => t.symbol === "ETH");
-  const token1 = TESTNET_TOKENS.find((t) => t.symbol === "SUN");
+  // Get token info for the current deployed pool
+  const token0 = TOKEN_0;
+  const token1 = TOKEN_1;
 
   if (!token0 || !token1) {
     return null;

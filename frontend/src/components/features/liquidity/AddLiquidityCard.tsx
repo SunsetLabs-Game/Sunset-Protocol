@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { ProofProgress } from "@/components/features/shared/ProofProgress";
 import { useMint } from "@/hooks/useMint";
 import { useSdkStore } from "@/stores/sdkStore";
-import { TESTNET_TOKENS } from "@/config/tokens";
+import { TOKEN_0, TOKEN_1 } from "@/config/tokens";
 import { parseTokenAmount } from "@/lib/format";
 import { FEE_TIERS } from "@sunset/sdk";
 import type { PoolKey } from "@sunset/sdk";
@@ -14,8 +14,16 @@ export function AddLiquidityCard() {
   const isInitialized = useSdkStore((s) => s.isInitialized);
   const unspentNotes = useSdkStore((s) => s.unspentNotes);
 
-  const token0 = TESTNET_TOKENS.find(t => t.symbol === "SUN")!;
-  const token1 = TESTNET_TOKENS.find(t => t.symbol === "ETH")!;
+  const token0 = TOKEN_0;
+  const token1 = TOKEN_1;
+
+  if (!token0 || !token1) {
+    return (
+      <div className="rounded-2xl border border-border/45 bg-surface/82 backdrop-blur-xl p-8 text-center">
+        <p className="text-text-caption">Token pair not configured. Check VITE_TOKEN_0/1 env vars.</p>
+      </div>
+    );
+  }
 
   const [amount0, setAmount0] = useState("");
   const [amount1, setAmount1] = useState("");

@@ -1,5 +1,5 @@
 import { useSdkStore } from "@/stores/sdkStore";
-import { TESTNET_TOKENS } from "@/config/tokens";
+import { TOKEN_0, TOKEN_1 } from "@/config/tokens";
 import { formatTokenAmount } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
 
@@ -11,14 +11,11 @@ export function BalanceDisplay() {
     return null;
   }
 
-  const ethToken = TESTNET_TOKENS.find((t) => t.symbol === "ETH");
-  const sunToken = TESTNET_TOKENS.find((t) => t.symbol === "SUN");
-
-  const ethBalance = ethToken
-    ? balances[ethToken.address.toLowerCase()] ?? 0n
+  const token0Balance = TOKEN_0
+    ? balances[TOKEN_0.address.toLowerCase()] ?? 0n
     : 0n;
-  const sunBalance = sunToken
-    ? balances[sunToken.address.toLowerCase()] ?? 0n
+  const token1Balance = TOKEN_1
+    ? balances[TOKEN_1.address.toLowerCase()] ?? 0n
     : 0n;
 
   return (
@@ -30,16 +27,16 @@ export function BalanceDisplay() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-text-caption">ETH</span>
+          <span className="text-sm text-text-caption">{TOKEN_0?.symbol ?? "Token 0"}</span>
           <span className="text-base font-mono text-text-display">
-            {ethToken ? formatTokenAmount(ethBalance, ethToken.decimals) : "0"}
+            {TOKEN_0 ? formatTokenAmount(token0Balance, TOKEN_0.decimals) : "0"}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-text-caption">SUN</span>
+          <span className="text-sm text-text-caption">{TOKEN_1?.symbol ?? "Token 1"}</span>
           <span className="text-base font-mono text-text-display">
-            {sunToken ? formatTokenAmount(sunBalance, sunToken.decimals) : "0"}
+            {TOKEN_1 ? formatTokenAmount(token1Balance, TOKEN_1.decimals) : "0"}
           </span>
         </div>
       </div>
