@@ -16,9 +16,11 @@
     "noEmit": true,
     "ignoreDeprecations": "5.0",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sunset/sdk": ["../sdk/src"]
     },
     "baseUrl": "."
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [{ "path": "../sdk" }]
 }

@@ -11,7 +11,7 @@
     "dev:frontend": "bun run env:sync && bun run check:conflux && cd frontend && bun run dev",
     "dev:asp": "bun run env:sync && bun run check:conflux && cd asp && cargo run",
     "dev:all": "node scripts/dev-all.mjs",
-    "build": "bun run build:frontend && bun run build:sdk && bun run build:asp && bun run build:contracts",
+    "build": "bun run build:sdk && bun run build:frontend && bun run build:asp && bun run build:contracts",
     "build:frontend": "cd frontend && bun run build",
     "build:sdk": "cd sdk && bun run build",
     "build:asp": "cd asp && cargo build --release",

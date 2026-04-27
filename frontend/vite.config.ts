@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": nodePath.resolve(__dirname, "./src"),
+      "@sunset/sdk": nodePath.resolve(__dirname, "../sdk/src"),
       // Stub Node.js builtins used by SDK's ClientProver (not executed in ASP mode)
       path: nodePath.resolve(__dirname, "./src/stubs/node-builtins.ts"),
       url: nodePath.resolve(__dirname, "./src/stubs/node-builtins.ts"),
@@ -40,7 +41,7 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api/, ""),
+        rewrite: (p: string) => p.replace(/^\/api/, ""),
       },
     },
   },
